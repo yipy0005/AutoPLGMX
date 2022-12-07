@@ -1,4 +1,6 @@
 from simple_term_menu import TerminalMenu  # type: ignore
+from protein_preparation_wizard import main as ppw_menu
+import sys
 
 
 def main():
@@ -7,14 +9,17 @@ def main():
             "Protein Preparation Wizard",
             "Generate MDP Files",
             "Run Molecular Dynamics Simulation",
+            "Quit",
         ],
-        multi_select=True,
-        show_multi_select_hint=True,
+        multi_select=False,
     )
     terminal_menu.show()
-    print("\nYou have chosen:\n")
-    for chosen_item in terminal_menu.chosen_menu_entries:  # type: ignore
-        print(chosen_item)
+
+    if terminal_menu.chosen_menu_entry == "Protein Preparation Wizard":
+        ppw_menu()
+
+    elif terminal_menu.chosen_menu_entry == "Quit":
+        sys.exit("Goodbye!")
 
 
 if __name__ == "__main__":
