@@ -102,20 +102,18 @@ def download_pdb(pdb_id: str = "", pdb_file: Path = Path("")) -> List[str]:
             )
         ).stdout.split("\n")
 
-    elif pdb_id == "" and pdb_file != Path(""):
+    elif not pdb_id and pdb_file != Path(""):
         with open(pdb_file, "r") as pdb_f:
             pdb_contents: list[str] = pdb_f.readlines()
 
     else:
         sys.exit("Please specify ONLY the PDB ID or the PDB FILE PATH!")
 
-    cleaned_pdb_contents = [
+    return [
         line
         for line in pdb_contents
         if len(line) != 0 and (line.split())[0] in record_types
     ]
-
-    return cleaned_pdb_contents
 
 
 def checkConsecutive(lst: List[int]) -> List[int]:
@@ -146,27 +144,24 @@ def checkConsecutive(lst: List[int]) -> List[int]:
         key_missing_numbers.insert(0, int("0"))
         key_missing_numbers.append(int("9999"))
     except IndexError:
-        key_missing_numbers.append(int("0"))
-        key_missing_numbers.append(int("9999"))
-
+        key_missing_numbers.extend((int("0"), int("9999")))
     return key_missing_numbers
 
 
 def get_lines(lines_lst: List[str], first_line: str = "") -> List[str]:
     output_lst: list[str] = []
     for line_idx in range(len(lines_lst)):
-        if first_line != "":
-            if first_line in lines_lst[line_idx]:
-                output_lst.append(lines_lst[line_idx])
-                try:
-                    while len(lines_lst[line_idx]) != 0:
-                        line_idx += 1
-                        if len(lines_lst[line_idx]) != 0:
-                            output_lst.append(lines_lst[line_idx])
-                        else:
-                            break
-                except IndexError:
-                    pass
+        if first_line != "" and first_line in lines_lst[line_idx]:
+            output_lst.append(lines_lst[line_idx])
+            try:
+                while len(lines_lst[line_idx]) != 0:
+                    line_idx += 1
+                    if len(lines_lst[line_idx]) != 0:
+                        output_lst.append(lines_lst[line_idx])
+                    else:
+                        break
+            except IndexError:
+                pass
 
     return output_lst
 
@@ -209,7 +204,7 @@ def read_topol(pdb_type: str, topol_file: Path, ligid: str) -> Dict[str, List[st
         topol_contents["SYSTEM"] = get_lines(lines, "[ system ]")
         topol_contents["MOLECULES"] = get_lines(lines, "[ molecules ]")
 
-        if pdb_type == "COMPLEX" or pdb_type == "PROTEIN":
+        if pdb_type in {"COMPLEX", "PROTEIN"}:
             topol_contents["FORCEFIELD PARAMS"] = get_lines(
                 lines, "; Include forcefield parameters"
             )
@@ -243,7 +238,7 @@ def read_topol(pdb_type: str, topol_file: Path, ligid: str) -> Dict[str, List[st
                 '#include "amber99sb.ff/ions.itp"',
             ]
 
-        if pdb_type == "COMPLEX" or pdb_type == "LIGAND":
+        if pdb_type in {"COMPLEX", "LIGAND"}:
             topol_contents["LIGAND TOPOLOGY"] = [
                 "; Include ligand topology",
                 f'#include "{ligid}_fix.acpype/{ligid}_fix_GMX.itp"',
@@ -258,8 +253,7 @@ def read_topol(pdb_type: str, topol_file: Path, ligid: str) -> Dict[str, List[st
             flat_lst: list[Any] = []
             for line in topol_contents["MOLECULES"]:
                 terms = line.split()
-                for term in terms:
-                    flat_lst.append(term)
+                flat_lst.extend(iter(terms))
             if f"{ligid}_fix" not in flat_lst:
                 topol_contents["MOLECULES"].append(f"{ligid}_fix        1")
 
@@ -278,9 +272,7 @@ def write_prm_file(lig_itp_file: Path) -> List[str]:
 
     with open(lig_itp_file, "r") as lig_itp_f:
         lines = lig_itp_f.readlines()
-        lig_itp_contents = lines[0:1] + lines[10:]
-
-        return lig_itp_contents
+        return lines[:1] + lines[10:]
 
 
 def check_pdb_type(pdb_contents: List[str]) -> str:
@@ -325,15 +317,8 @@ def check_pdb_type(pdb_contents: List[str]) -> str:
 
     if check:
         return "PROTEIN"
-    else:
-        count = 0
-        for item in resname_lst:
-            if item in amino_acids_3_letter_codes:
-                count += 1
-        if count == 0:
-            return "LIGAND"
-        else:
-            return "COMPLEX"
+    count = sum(item in amino_acids_3_letter_codes for item in resname_lst)
+    return "LIGAND" if count == 0 else "COMPLEX"
 
 
 def calc_net_charge(pdb_contents: List[str]) -> int:

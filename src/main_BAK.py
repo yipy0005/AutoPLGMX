@@ -89,7 +89,7 @@ def clean_pdb(pdb_type: str, pdb_contents: List[str]) -> List[str]:
 
 def mdp_type(pdb_type: str, simulation_type: str, ligid: str) -> Any:
     if simulation_type == "ions":
-        mdp = MDP(
+        return MDP(
             sim_type=simulation_type,
             integrator="steep",
             nsteps=50000,
@@ -99,21 +99,15 @@ def mdp_type(pdb_type: str, simulation_type: str, ligid: str) -> Any:
             rcoulomb=1.0,
             rvdw=1.0,
         )
-
-        return mdp
-
     elif simulation_type == "em":
-        mdp = MDP(
+        return MDP(
             sim_type=simulation_type,
             integrator="steep",
             nsteps=50000,
             nstlist=1,
         )
-
-        return mdp
-
     elif simulation_type == "nvt" and pdb_type == "COMPLEX":
-        mdp = MDP(
+        return MDP(
             sim_type=simulation_type,
             nsteps=500000,
             # nsteps=50000,
@@ -127,11 +121,8 @@ def mdp_type(pdb_type: str, simulation_type: str, ligid: str) -> Any:
             pcoupl="no",
             gen_vel="yes",
         )
-
-        return mdp
-
     elif simulation_type == "nvt" and pdb_type == "PROTEIN":
-        mdp = MDP(
+        return MDP(
             sim_type=simulation_type,
             nsteps=500000,
             # nsteps=50000,
@@ -145,11 +136,8 @@ def mdp_type(pdb_type: str, simulation_type: str, ligid: str) -> Any:
             pcoupl="no",
             gen_vel="yes",
         )
-
-        return mdp
-
     elif simulation_type == "nvt" and pdb_type == "LIGAND":
-        mdp = MDP(
+        return MDP(
             sim_type=simulation_type,
             nsteps=500000,
             # nsteps=50000,
@@ -163,11 +151,8 @@ def mdp_type(pdb_type: str, simulation_type: str, ligid: str) -> Any:
             pcoupl="no",
             gen_vel="yes",
         )
-
-        return mdp
-
     elif simulation_type == "npt" and pdb_type == "COMPLEX":
-        mdp = MDP(
+        return MDP(
             sim_type=simulation_type,
             nsteps=2500000,
             # nsteps=50000,
@@ -177,11 +162,8 @@ def mdp_type(pdb_type: str, simulation_type: str, ligid: str) -> Any:
             tc_grps=f"Protein_{ligid} Water_and_ions",
             pcoupl="C-rescale",
         )
-
-        return mdp
-
     elif simulation_type == "npt" and pdb_type == "PROTEIN":
-        mdp = MDP(
+        return MDP(
             sim_type=simulation_type,
             nsteps=2500000,
             # nsteps=50000,
@@ -191,11 +173,8 @@ def mdp_type(pdb_type: str, simulation_type: str, ligid: str) -> Any:
             tc_grps="Protein Water_and_ions",
             pcoupl="C-rescale",
         )
-
-        return mdp
-
     elif simulation_type == "npt" and pdb_type == "LIGAND":
-        mdp = MDP(
+        return MDP(
             sim_type=simulation_type,
             nsteps=2500000,
             # nsteps=50000,
@@ -205,21 +184,15 @@ def mdp_type(pdb_type: str, simulation_type: str, ligid: str) -> Any:
             tc_grps="System",
             pcoupl="C-rescale",
         )
-
-        return mdp
-
     elif simulation_type == "md" and pdb_type == "COMPLEX":
-        mdp = MDP(
+        return MDP(
             sim_type=simulation_type,
             nsteps=5000000,
             # nsteps=100000,
             tc_grps=f"Protein_{ligid} Water_and_ions",
         )
-
-        return mdp
-
     elif simulation_type == "md" and pdb_type == "PROTEIN":
-        mdp = MDP(
+        return MDP(
             sim_type=simulation_type,
             nsteps=500000000,
             # nsteps=100000,
@@ -227,18 +200,13 @@ def mdp_type(pdb_type: str, simulation_type: str, ligid: str) -> Any:
             # freezegrps="Protein",
             # freezedim="Y Y Y",
         )
-
-        return mdp
-
     elif simulation_type == "md" and pdb_type == "LIGAND":
-        mdp = MDP(
+        return MDP(
             sim_type=simulation_type,
             nsteps=5000000,
             # nsteps=100000,
             tc_grps="System",
         )
-
-        return mdp
 
 
 def calc_freeBE(production_md_output: Path, fit: Any, root_dir: str):
@@ -331,9 +299,7 @@ def main(pdb_file: Path, gpu_id: int, output_dir: Path) -> Any:
         pdb_type_dict["COMPLEX"] = []
 
         ligand_atom_numbers: list[int] = []
-        for line in pdb_contents:
-            ligand_pdb_contents.append(line)
-
+        ligand_pdb_contents.extend(iter(pdb_contents))
     elif pdb_type == "PROTEIN":
         pdb_type_dict["COMPLEX"] = []
         protein_pdb_contents = pdb_contents

@@ -33,8 +33,8 @@ def get_pdb_line_components(pdb_line: str) -> Dict[str, Union[int, float, str]]:
     pdb_line_terms: Dict[str, Union[int, float, str]] = {}
 
     if pdb_line:
-        if (pdb_line.split())[0] == "ATOM" or (pdb_line.split())[0] == "HETATM":
-            pdb_line_terms["RECORD TYPE"] = pdb_line[0:6].replace(" ", "")
+        if (pdb_line.split())[0] in ["ATOM", "HETATM"]:
+            pdb_line_terms["RECORD TYPE"] = pdb_line[:6].replace(" ", "")
             pdb_line_terms["ATOM SERIAL NUMBER"] = (
                 int(pdb_line[6:11].replace(" ", ""))
                 if pdb_line[6:11].replace(" ", "") != ""
@@ -82,7 +82,7 @@ def get_pdb_line_components(pdb_line: str) -> Dict[str, Union[int, float, str]]:
             pdb_line_terms["SEGMENT ID"] = pdb_line[72:76].replace(" ", "")
             pdb_line_terms["ELEMENT SYMBOL"] = pdb_line[76:78].replace(" ", "")
         elif (pdb_line.split())[0] == "TER":
-            pdb_line_terms["RECORD TYPE"] = pdb_line[0:6].replace(" ", "")
+            pdb_line_terms["RECORD TYPE"] = pdb_line[:6].replace(" ", "")
             try:
                 pdb_line_terms["ATOM SERIAL NUMBER"] = int(
                     pdb_line[6:11].replace(" ", "")
@@ -100,7 +100,7 @@ def get_pdb_line_components(pdb_line: str) -> Dict[str, Union[int, float, str]]:
             except ValueError:
                 pass
         elif (pdb_line.split())[0] == "CONECT":
-            pdb_line_terms["RECORD TYPE"] = pdb_line[0:6].replace(" ", "")
+            pdb_line_terms["RECORD TYPE"] = pdb_line[:6].replace(" ", "")
             pdb_line_terms["ATOM SERIAL NUMBER"] = pdb_line[6:11].replace(" ", "")
             pdb_line_terms["BONDED ATOM SERIAL NUMBER"] = pdb_line[12:].strip("\n")
 
@@ -111,10 +111,7 @@ def assemble_pdb_line_components(
     pdb_line_components: Dict[str, Union[int, float, str]]
 ) -> Optional[str]:
     # Length of an ATOM line should have 78 characters
-    if (
-        pdb_line_components["RECORD TYPE"] == "ATOM"
-        or pdb_line_components["RECORD TYPE"] == "HETATM"
-    ):
+    if pdb_line_components["RECORD TYPE"] in ["ATOM", "HETATM"]:
         for key in [
             "X COORDINATE",
             "Y COORDINATE",
@@ -170,7 +167,7 @@ def get_missing_terms(pdb_line_terms: Dict[str, Union[int, float, str]]) -> List
 
     return [
         key
-        for key in pdb_line_terms.keys()
+        for key in pdb_line_terms
         if pdb_line_terms[key] == "" and key in important_columns
     ]
 
