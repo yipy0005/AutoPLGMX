@@ -5,7 +5,7 @@ import sys
 
 # from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Tuple, List
 
 from check_pdb import check_missing_pdb_info, get_pdb_line_components
 from gmx_ops import (  # convert_lig_to_gro,
@@ -65,13 +65,13 @@ amino_acids_3_letter_codes = [
 ]
 
 
-def obtain_pdb(pdbid: str, pdb_file: Path) -> Tuple[list[str], str]:
+def obtain_pdb(pdbid: str, pdb_file: Path) -> Tuple[List[str], str]:
     pdb_contents = download_pdb(pdbid, pdb_file)
     pdb_filename = pdbid if pdb_file == Path("") else Path((pdb_file).name).stem
     return pdb_contents, pdb_filename
 
 
-def clean_pdb(pdb_type: str, pdb_contents: list[str]) -> list[str]:
+def clean_pdb(pdb_type: str, pdb_contents: List[str]) -> List[str]:
 
     return (
         (

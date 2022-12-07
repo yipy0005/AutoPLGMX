@@ -1,4 +1,4 @@
-from typing import Dict, Optional, Union
+from typing import Dict, Optional, Union, List
 
 amino_acids_3_letter_codes = [
     "ARG",
@@ -152,7 +152,7 @@ def assemble_pdb_line_components(
         return pdb_line
 
 
-def get_missing_terms(pdb_line_terms: Dict[str, Union[int, float, str]]) -> list[str]:
+def get_missing_terms(pdb_line_terms: Dict[str, Union[int, float, str]]) -> List[str]:
 
     important_columns = [
         "RECORD TYPE",
@@ -175,7 +175,7 @@ def get_missing_terms(pdb_line_terms: Dict[str, Union[int, float, str]]) -> list
     ]
 
 
-def check_missing_pdb_info(pdb_contents: list[str]) -> Dict[str, str]:
+def check_missing_pdb_info(pdb_contents: List[str]) -> Dict[str, str]:
     problematic_lines: Dict[str, str] = {}
     for line in pdb_contents:
         pdb_line_terms = get_pdb_line_components(line)

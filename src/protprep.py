@@ -1,6 +1,7 @@
+import contextlib
 import string
 import subprocess
-from typing import Dict, Optional, Tuple, Union
+from typing import Dict, Optional, Tuple, Union, List
 
 from gql import Client, gql
 from gql.transport.requests import RequestsHTTPTransport
@@ -52,7 +53,7 @@ protein_pdb_query = gql(
 )
 
 
-def check_missing_residues(pdb_contents: list[str]) -> bool:
+def check_missing_residues(pdb_contents: List[str]) -> bool:
     """
     Checks if there are any missing residues in the pdb file.
 
@@ -64,16 +65,13 @@ def check_missing_residues(pdb_contents: list[str]) -> bool:
     for line in pdb_contents[:-1]:
         terms = line.split()
         if "ATOM" in terms[0]:
-            try:
+            with contextlib.suppress(ValueError):
                 residue_no_lst.append(int(terms[5]))
-            except ValueError:
-                pass
-
     return checkConsecutive(list(set(residue_no_lst))) is None
 
 
-@Pipe
-def remove_alternate_positions(pdb_contents: list[str]) -> list[str]:
+@Pipe  # type: ignore
+def remove_alternate_positions(pdb_contents: List[str]) -> List[str]:
     """
     Remove alternate positions from a PDB file.
 
@@ -98,8 +96,8 @@ def remove_alternate_positions(pdb_contents: list[str]) -> list[str]:
     ).stdout.split("\n")
 
 
-@Pipe
-def delete_hydrogens(pdb_contents: list[str]) -> list[str]:
+@Pipe  # type: ignore
+def delete_hydrogens(pdb_contents: List[str]) -> List[str]:
     """
     Takes a list of strings representing a PDB file and returns the same list with all hydrogen atoms
     removed.
@@ -119,8 +117,8 @@ def delete_hydrogens(pdb_contents: list[str]) -> list[str]:
     return edited_pdb_contents
 
 
-@Pipe
-def delete_hetatms(pdb_contents: list[str]) -> list[str]:
+@Pipe  # type: ignore
+def delete_hetatms(pdb_contents: List[str]) -> List[str]:
     """
     Delete all HETATM and CONECT lines from a PDB file.
 
@@ -143,8 +141,8 @@ def delete_hetatms(pdb_contents: list[str]) -> list[str]:
     return edited_pdb_contents
 
 
-@Pipe
-def assign_chain_ids(pdb_contents: list[str]) -> list[str]:
+@Pipe  # type: ignore
+def assign_chain_ids(pdb_contents: List[str]) -> List[str]:
     edited_pdb_contents: Optional[list[str]] = []
 
     all_residue_numbers: list[int] = []
@@ -158,7 +156,7 @@ def assign_chain_ids(pdb_contents: list[str]) -> list[str]:
     missing_residue_numbers: list[int] = checkConsecutive(all_residue_numbers)
 
     for i in range(len(missing_residue_numbers)):
-        try:
+        with contextlib.suppress(IndexError):
             for line in pdb_contents:
                 pdb_line_components: Optional[
                     Dict[str, Union[int, float, str]]
@@ -174,14 +172,12 @@ def assign_chain_ids(pdb_contents: list[str]) -> list[str]:
                         edited_pdb_contents.append(
                             str(assemble_pdb_line_components(pdb_line_components))
                         )
-        except IndexError:
-            pass
 
     return edited_pdb_contents
 
 
-@Pipe
-def adding_ter(pdb_contents: list[str]) -> list[str]:
+@Pipe  # type: ignore
+def adding_ter(pdb_contents: List[str]) -> List[str]:
     """
     Add TER to the end of each chain in the PDB file.
 
@@ -212,7 +208,7 @@ def adding_ter(pdb_contents: list[str]) -> list[str]:
     return edited_pdb_contents
 
 
-def get_bound_ligand(pdb_id: str, pdb_contents: list[str]) -> Tuple[str, list[str]]:
+def get_bound_ligand(pdb_id: str, pdb_contents: List[str]) -> Tuple[str, List[str]]:
     """This function extracts only the lines in the PDB file pertaining to the ligand molecule.
 
     Args:
@@ -277,7 +273,7 @@ def get_bound_ligand(pdb_id: str, pdb_contents: list[str]) -> Tuple[str, list[st
                 else:
                     pass
 
-            dehydrogenated_ligand: list[str] = bound_ligand_pdb | delete_hydrogens
+            dehydrogenated_ligand: list[str] = bound_ligand_pdb | delete_hydrogens  # type: ignore
 
             return bound_ligand_pdbid, dehydrogenated_ligand
 
@@ -292,7 +288,7 @@ def get_bound_ligand(pdb_id: str, pdb_contents: list[str]) -> Tuple[str, list[st
                 else:
                     pass
 
-            dehydrogenated_ligand: list[str] = bound_ligand_pdb | delete_hydrogens
+            dehydrogenated_ligand: list[str] = bound_ligand_pdb | delete_hydrogens  # type: ignore
 
             return bound_ligand_pdbid, dehydrogenated_ligand
         else:
@@ -300,8 +296,8 @@ def get_bound_ligand(pdb_id: str, pdb_contents: list[str]) -> Tuple[str, list[st
             return "", []
 
 
-@Pipe
-def delete_waters(pdb_contents: list[str]) -> list[str]:
+@Pipe  # type: ignore
+def delete_waters(pdb_contents: List[str]) -> List[str]:
     """
     Removes water molecules from a PDB file.
     """

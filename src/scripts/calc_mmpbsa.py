@@ -1,12 +1,12 @@
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict
+from typing import Dict, List
 
 
 @dataclass
 class Commandline_Operation:
-    params: list[str]
+    params: List[str]
     input_files: Dict[str, Path]
     output_files: Dict[str, Path]
     input_for_subprocess: str = ""
