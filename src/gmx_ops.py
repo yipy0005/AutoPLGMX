@@ -71,17 +71,14 @@ def combine_prot_lig_gro(
     root_dir: str, ligand_id: str, protein_pdb: str = "PROTEIN"
 ) -> List[str]:
 
-    complex_lines: list[str] = []
     with open(f"{root_dir}/{protein_pdb}_processed.gro", "r") as protein_f:
         protein_lines = protein_f.readlines()
     with open(
         f"{root_dir}/{ligand_id}_fix.acpype/{ligand_id}_fix_GMX.gro", "r"
     ) as ligand_f:
         ligand_lines = ligand_f.readlines()
-    for line in protein_lines[2:-1]:
-        complex_lines.append(line)
-    for line in ligand_lines[2:-1]:
-        complex_lines.append(line)
+    complex_lines: list[str] = list(protein_lines[2:-1])
+    complex_lines.extend(iter(ligand_lines[2:-1]))
     complex_lines.insert(0, protein_lines[0])
     complex_lines.insert(1, f"{len(complex_lines) - 1}\n")
     complex_lines.append(protein_lines[-1])
@@ -190,100 +187,100 @@ class MDP:
 
         sim_types = ["ions", "em", "nvt", "npt", "md"]
 
-        default_params_for_ions_and_em: Dict[str, Any] = {
-            "integrator": self.integrator,
-            "nsteps": self.nsteps,
-            "emtol": self.emtol,
-            "emstep": self.emstep,
-            "cutoff_scheme": self.cutoff_scheme,
-            "nstlist": self.nstlist,
-            "pbc": self.pbc,
-            "ns_type": self.ns_type,
-            "rlist": self.rlist,
-            "coulombtype": self.coulombtype,
-            "rcoulomb": self.rcoulomb,
-            "rvdw": self.rvdw,
-        }
+        if self.sim_type in sim_types:
+            default_params_for_ions_and_em: Dict[str, Any] = {
+                "integrator": self.integrator,
+                "nsteps": self.nsteps,
+                "emtol": self.emtol,
+                "emstep": self.emstep,
+                "cutoff_scheme": self.cutoff_scheme,
+                "nstlist": self.nstlist,
+                "pbc": self.pbc,
+                "ns_type": self.ns_type,
+                "rlist": self.rlist,
+                "coulombtype": self.coulombtype,
+                "rcoulomb": self.rcoulomb,
+                "rvdw": self.rvdw,
+            }
 
-        default_params_for_nvt_npt_md: Dict[str, Any] = {
-            "integrator": self.integrator,
-            "dt": self.dt,
-            "nsteps": self.nsteps,
-            "nstlog": self.nstlog,
-            "nstenergy": self.nstenergy,
-            "nstxout_compressed": self.nstxout_compressed,
-            "cutoff_scheme": self.cutoff_scheme,
-            "nstlist": self.nstlist,
-            "pbc": self.pbc,
-            "ns_type": self.ns_type,
-            "rlist": self.rlist,
-            "coulombtype": self.coulombtype,
-            "rcoulomb": self.rcoulomb,
-            "vdwtype": self.vdwtype,
-            "vdw_modifier": self.vdw_modifier,
-            "rvdw_switch": self.rvdw_switch,
-            "rvdw": self.rvdw,
-            "DispCorr": self.DispCorr,
-            "fourierspacing": self.fourierspacing,
-            "pme_order": self.pme_order,
-            "tcoupl": self.tcoupl,
-            "tc_grps": self.tc_grps,
-            "tau_t": self.tau_t,
-            "ref_t": self.ref_t,
-            "pcoupl": self.pcoupl,
-            "gen_vel": self.gen_vel,
-            "constraints": self.constraints,
-            "constraint_algorithm": self.constraint_algorithm,
-            "continuation": self.continuation,
-            "lincs_order": self.lincs_order,
-            "lincs_iter": self.lincs_iter,
-        }
-
-        if self.sim_type in sim_types and self.sim_type == "ions":
-            return default_params_for_ions_and_em
-
-        elif self.sim_type in sim_types and self.sim_type == "em":
-
-            additional_params: Dict[str, Any] = {
+            default_params_for_nvt_npt_md: Dict[str, Any] = {
+                "integrator": self.integrator,
+                "dt": self.dt,
+                "nsteps": self.nsteps,
+                "nstlog": self.nstlog,
+                "nstenergy": self.nstenergy,
+                "nstxout_compressed": self.nstxout_compressed,
+                "cutoff_scheme": self.cutoff_scheme,
+                "nstlist": self.nstlist,
+                "pbc": self.pbc,
+                "ns_type": self.ns_type,
+                "rlist": self.rlist,
+                "coulombtype": self.coulombtype,
+                "rcoulomb": self.rcoulomb,
                 "vdwtype": self.vdwtype,
                 "vdw_modifier": self.vdw_modifier,
                 "rvdw_switch": self.rvdw_switch,
+                "rvdw": self.rvdw,
                 "DispCorr": self.DispCorr,
+                "fourierspacing": self.fourierspacing,
+                "pme_order": self.pme_order,
+                "tcoupl": self.tcoupl,
+                "tc_grps": self.tc_grps,
+                "tau_t": self.tau_t,
+                "ref_t": self.ref_t,
+                "pcoupl": self.pcoupl,
+                "gen_vel": self.gen_vel,
+                "constraints": self.constraints,
+                "constraint_algorithm": self.constraint_algorithm,
+                "continuation": self.continuation,
+                "lincs_order": self.lincs_order,
+                "lincs_iter": self.lincs_iter,
             }
 
-            return default_params_for_ions_and_em | additional_params  # type: ignore
+            if self.sim_type == "em":
+                additional_params: Dict[str, Any] = {
+                    "vdwtype": self.vdwtype,
+                    "vdw_modifier": self.vdw_modifier,
+                    "rvdw_switch": self.rvdw_switch,
+                    "DispCorr": self.DispCorr,
+                }
 
-        elif self.sim_type in sim_types and self.sim_type == "nvt":
-            additional_params: Dict[str, Any] = {
-                "define": self.define,
-                "gen_temp": self.gen_temp,
-                "gen_seed": self.gen_seed,
-            }
+                return default_params_for_ions_and_em | additional_params  # type: ignore
 
-            return default_params_for_nvt_npt_md | additional_params  # type: ignore
+            elif self.sim_type == "ions":
+                return default_params_for_ions_and_em
 
-        elif self.sim_type in sim_types and self.sim_type == "npt":
-            additional_params: Dict[str, Any] = {
-                "define": self.define,
-                "pcoupltype": self.pcoupltype,
-                "tau_p": self.tau_p,
-                "compressibility": self.compressibility,
-                "ref_p": self.ref_p,
-                "refcoord_scaling": self.refcoord_scaling,
-            }
+            elif self.sim_type == "md":
+                additional_params: Dict[str, Any] = {
+                    "pcoupltype": self.pcoupltype,
+                    "tau_p": self.tau_p,
+                    "compressibility": self.compressibility,
+                    "ref_p": self.ref_p,
+                    # "freezegrps": self.freezegrps,
+                    # "freezedim": self.freezedim,
+                }
 
-            return default_params_for_nvt_npt_md | additional_params  # type: ignore
+                return default_params_for_nvt_npt_md | additional_params  # type: ignore
 
-        elif self.sim_type in sim_types and self.sim_type == "md":
-            additional_params: Dict[str, Any] = {
-                "pcoupltype": self.pcoupltype,
-                "tau_p": self.tau_p,
-                "compressibility": self.compressibility,
-                "ref_p": self.ref_p,
-                # "freezegrps": self.freezegrps,
-                # "freezedim": self.freezedim,
-            }
+            elif self.sim_type == "npt":
+                additional_params: Dict[str, Any] = {
+                    "define": self.define,
+                    "pcoupltype": self.pcoupltype,
+                    "tau_p": self.tau_p,
+                    "compressibility": self.compressibility,
+                    "ref_p": self.ref_p,
+                    "refcoord_scaling": self.refcoord_scaling,
+                }
 
-            return default_params_for_nvt_npt_md | additional_params  # type: ignore
+                return default_params_for_nvt_npt_md | additional_params  # type: ignore
+
+            elif self.sim_type == "nvt":
+                additional_params: Dict[str, Any] = {
+                    "define": self.define,
+                    "gen_temp": self.gen_temp,
+                    "gen_seed": self.gen_seed,
+                }
+
+                return default_params_for_nvt_npt_md | additional_params  # type: ignore
 
         return {}

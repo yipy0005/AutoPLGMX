@@ -105,15 +105,15 @@ def delete_hydrogens(pdb_contents: List[str]) -> List[str]:
     :return: list of strings representing a PDB file with all hydrogen atoms removed
     """
 
-    edited_pdb_contents: list[str] = []
-    for line in pdb_contents:
+    edited_pdb_contents: list[str] = [
+        line
+        for line in pdb_contents
         if (
             line.split()[0] in ["ATOM", "HETATM"]
             and line.split()[-1] != "H"
             or line.split()[0] == "CONECT"
-        ):
-            edited_pdb_contents.append(line)
-
+        )
+    ]
     return edited_pdb_contents
 
 
@@ -161,17 +161,16 @@ def assign_chain_ids(pdb_contents: List[str]) -> List[str]:
                 pdb_line_components: Optional[
                     Dict[str, Union[int, float, str]]
                 ] = get_pdb_line_components(line)
-                if line.startswith("CONECT") is False:
-                    if (
-                        int(pdb_line_components["RESIDUE SEQ NUMBER"])
-                        > missing_residue_numbers[i]
-                        and int(pdb_line_components["RESIDUE SEQ NUMBER"])
-                        < missing_residue_numbers[i + 1]
-                    ):
-                        pdb_line_components["CHAIN ID"] = string.ascii_uppercase[i]
-                        edited_pdb_contents.append(
-                            str(assemble_pdb_line_components(pdb_line_components))
-                        )
+                if line.startswith("CONECT") is False and (
+                    int(pdb_line_components["RESIDUE SEQ NUMBER"])
+                    > missing_residue_numbers[i]
+                    and int(pdb_line_components["RESIDUE SEQ NUMBER"])
+                    < missing_residue_numbers[i + 1]
+                ):
+                    pdb_line_components["CHAIN ID"] = string.ascii_uppercase[i]
+                    edited_pdb_contents.append(
+                        str(assemble_pdb_line_components(pdb_line_components))
+                    )
 
     return edited_pdb_contents
 
@@ -229,13 +228,11 @@ def get_bound_ligand(pdb_id: str, pdb_contents: List[str]) -> Tuple[str, List[st
                 "comp_id"
             ]
 
-            bound_ligand_pdb: list[str] = []
-
-            for line in pdb_contents:
-                if "HETATM" in line and bound_ligand_pdbid in line:
-                    bound_ligand_pdb.append(line)
-                else:
-                    pass
+            bound_ligand_pdb: list[str] = [
+                line
+                for line in pdb_contents
+                if "HETATM" in line and bound_ligand_pdbid in line
+            ]
 
             return bound_ligand_pdbid, bound_ligand_pdb
         except TypeError:
@@ -246,32 +243,30 @@ def get_bound_ligand(pdb_id: str, pdb_contents: List[str]) -> Tuple[str, List[st
         hetero_resname: list[str] = []
         for line in pdb_contents:
             pdb_terms_dict = get_pdb_line_components(line)
-            if pdb_terms_dict["RECORD TYPE"] == "HETATM":
+            if (
+                pdb_terms_dict["RECORD TYPE"] != "HETATM"
+                and pdb_terms_dict["RECORD TYPE"] == "ATOM"
+                and pdb_terms_dict["RESIDUE NAME"]
+                not in amino_acids_3_letter_codes
+                or pdb_terms_dict["RECORD TYPE"] == "HETATM"
+            ):
                 hetero_resname.append(str(pdb_terms_dict["RESIDUE NAME"]))
-            elif pdb_terms_dict["RECORD TYPE"] == "ATOM":
-                if pdb_terms_dict["RESIDUE NAME"] not in amino_acids_3_letter_codes:
-                    hetero_resname.append(str(pdb_terms_dict["RESIDUE NAME"]))
         hetero_resname = list(set(hetero_resname))
 
-        choices: Dict[int, str] = {}
         if len(hetero_resname) > 1:
-            i = 1
-            for resname in hetero_resname:
-                choices[i] = resname
-                i += 1
-
+            choices: Dict[int, str] = dict(enumerate(hetero_resname, start=1))
             for key, value in choices.items():
                 print(f"{key}. {value}")
 
             bound_ligand_pdbid = choices[int(input("Choose Bound Ligand: "))]
 
-            bound_ligand_pdb: list[str] = []
-
-            for line in pdb_contents:
-                if "HETATM" in line or "ATOM" in line and bound_ligand_pdbid in line:
-                    bound_ligand_pdb.append(line)
-                else:
-                    pass
+            bound_ligand_pdb: list[str] = [
+                line
+                for line in pdb_contents
+                if "HETATM" in line
+                or "ATOM" in line
+                and bound_ligand_pdbid in line
+            ]
 
             dehydrogenated_ligand: list[str] = bound_ligand_pdb | delete_hydrogens  # type: ignore
 
@@ -280,13 +275,13 @@ def get_bound_ligand(pdb_id: str, pdb_contents: List[str]) -> Tuple[str, List[st
         elif len(hetero_resname) == 1:
             bound_ligand_pdbid = hetero_resname[0]
 
-            bound_ligand_pdb: list[str] = []
-
-            for line in pdb_contents:
-                if "HETATM" in line or "ATOM" in line and bound_ligand_pdbid in line:
-                    bound_ligand_pdb.append(line)
-                else:
-                    pass
+            bound_ligand_pdb: list[str] = [
+                line
+                for line in pdb_contents
+                if "HETATM" in line
+                or "ATOM" in line
+                and bound_ligand_pdbid in line
+            ]
 
             dehydrogenated_ligand: list[str] = bound_ligand_pdb | delete_hydrogens  # type: ignore
 
