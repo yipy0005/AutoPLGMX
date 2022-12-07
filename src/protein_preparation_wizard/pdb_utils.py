@@ -12,7 +12,7 @@ def download_pdb(pdb_code: str) -> Optional[List[str]]:
     Returns:
         Optional[List[str]]: Contents of the PDB file as a list of strings, otherwise None
     """
-    
+
     pdb_url: str = f"http://www.rcsb.org/pdb/files/{pdb_code}.pdb"
 
     response = requests.get(pdb_url)
