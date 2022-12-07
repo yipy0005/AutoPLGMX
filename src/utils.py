@@ -2,7 +2,7 @@ import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from gql import Client, gql
 from gql.transport.requests import RequestsHTTPTransport
@@ -54,7 +54,7 @@ protein_pdb_query = gql(
 
 @dataclass
 class Commandline_Operation:
-    params: list[str]
+    params: List[str]
     input_files: Dict[str, Path]
     output_files: Dict[str, Path]
     input_for_subprocess: str = ""
@@ -73,7 +73,7 @@ class Commandline_Operation:
         )
 
 
-def download_pdb(pdb_id: str = "", pdb_file: Path = Path("")) -> list[str]:
+def download_pdb(pdb_id: str = "", pdb_file: Path = Path("")) -> List[str]:
     """This function downloads the PDB file from RCSB using its API and GraphQL.
 
     Args:
@@ -118,7 +118,7 @@ def download_pdb(pdb_id: str = "", pdb_file: Path = Path("")) -> list[str]:
     return cleaned_pdb_contents
 
 
-def checkConsecutive(lst: list[int]) -> list[int]:
+def checkConsecutive(lst: List[int]) -> List[int]:
     """
     This function checks for consecutive numbers in a list.
 
@@ -152,7 +152,7 @@ def checkConsecutive(lst: list[int]) -> list[int]:
     return key_missing_numbers
 
 
-def get_lines(lines_lst: list[str], first_line: str = "") -> list[str]:
+def get_lines(lines_lst: List[str], first_line: str = "") -> List[str]:
     output_lst: list[str] = []
     for line_idx in range(len(lines_lst)):
         if first_line != "":
@@ -171,8 +171,8 @@ def get_lines(lines_lst: list[str], first_line: str = "") -> list[str]:
     return output_lst
 
 
-def read_topol(pdb_type: str, topol_file: Path, ligid: str) -> Dict[str, list[str]]:
-    topol_contents: Dict[str, list[str]] = {}
+def read_topol(pdb_type: str, topol_file: Path, ligid: str) -> Dict[str, List[str]]:
+    topol_contents: Dict[str, List[str]] = {}
 
     with open(topol_file, "r") as topol_f:
         lines = [line.strip("\n") for line in topol_f.readlines()]
@@ -266,7 +266,7 @@ def read_topol(pdb_type: str, topol_file: Path, ligid: str) -> Dict[str, list[st
     return topol_contents
 
 
-def write_prm_file(lig_itp_file: Path) -> list[str]:
+def write_prm_file(lig_itp_file: Path) -> List[str]:
     """Extracts ligand topology information from the ligand.itp file
 
     Args:
@@ -283,7 +283,7 @@ def write_prm_file(lig_itp_file: Path) -> list[str]:
         return lig_itp_contents
 
 
-def check_pdb_type(pdb_contents: list[str]) -> str:
+def check_pdb_type(pdb_contents: List[str]) -> str:
 
     amino_acids_3_letter_codes = [
         "ARG",
@@ -336,7 +336,7 @@ def check_pdb_type(pdb_contents: list[str]) -> str:
             return "COMPLEX"
 
 
-def calc_net_charge(pdb_contents: list[str]) -> int:
+def calc_net_charge(pdb_contents: List[str]) -> int:
     net_charge: int = 0
     for line in pdb_contents:
         if line.startswith("ATOM") or line.startswith("HETATM"):

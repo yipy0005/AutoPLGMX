@@ -3,11 +3,11 @@ import subprocess
 
 # import time
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 
 
 def main(
-    pdb_dir: Path, output_dir: Path, prefix_list: list[str], ligand_type: str
+    pdb_dir: Path, output_dir: Path, prefix_list: List[str], ligand_type: str
 ) -> Any:
     root = str(pdb_dir)
     for gpu_id, prefix in enumerate(prefix_list):

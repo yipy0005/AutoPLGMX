@@ -3,22 +3,20 @@ import shutil
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from utils import Commandline_Operation, calc_net_charge, read_topol
 
 
 def edit_mdp_files(pdb_type: str, topol_file: Path, ligid: str) -> None:
     topol_contents: Dict[str, list[str]] = read_topol(pdb_type, topol_file, ligid)
-    topol_lines_containing_ions: list[str] = []
-    for line in topol_contents["MOLECULES"]:
-        if "NA" in line or "CL" in line:
-            topol_lines_containing_ions.append(line)
+    topol_lines_containing_ions: list[str] = [
+        line for line in topol_contents["MOLECULES"] if "NA" in line or "CL" in line
+    ]
 
     for file in os.listdir("."):
-        if len(topol_lines_containing_ions) == 0:
-            if Path(file).suffix == ".mdp":
-                subprocess.run(f"sed -i 's/Water_and_ions/Water/g' {file}", shell=True)
+        if not topol_lines_containing_ions and Path(file).suffix == ".mdp":
+            subprocess.run(f"sed -i 's/Water_and_ions/Water/g' {file}", shell=True)
 
 
 def generate_prot_top(pdb_type: str, root_dir: str) -> subprocess.CompletedProcess[str]:
@@ -61,7 +59,7 @@ def fix_lig_bond_order(
 
 
 def generate_lig_files(
-    ligand_pdb_contents: list[str], ligand_id: str, root_dir: str
+    ligand_pdb_contents: List[str], ligand_id: str, root_dir: str
 ) -> subprocess.CompletedProcess[bytes]:
     net_charge = calc_net_charge(ligand_pdb_contents)
     return subprocess.run(
@@ -71,7 +69,7 @@ def generate_lig_files(
 
 def combine_prot_lig_gro(
     root_dir: str, ligand_id: str, protein_pdb: str = "PROTEIN"
-) -> list[str]:
+) -> List[str]:
 
     complex_lines: list[str] = []
     with open(f"{root_dir}/{protein_pdb}_processed.gro", "r") as protein_f:
@@ -124,7 +122,7 @@ def edit_topol_top(pdb_type: str, topol_file: Path, ligid: str):
             if key != "MOLECULES":
                 tmp_topol_file.write("\n")
 
-    shutil.move(Path("tmp.top"), topol_file)
+    shutil.move("tmp.top", topol_file)
 
 
 @dataclass
@@ -253,7 +251,7 @@ class MDP:
                 "DispCorr": self.DispCorr,
             }
 
-            return default_params_for_ions_and_em | additional_params
+            return default_params_for_ions_and_em | additional_params  # type: ignore
 
         elif self.sim_type in sim_types and self.sim_type == "nvt":
             additional_params: Dict[str, Any] = {
@@ -262,7 +260,7 @@ class MDP:
                 "gen_seed": self.gen_seed,
             }
 
-            return default_params_for_nvt_npt_md | additional_params
+            return default_params_for_nvt_npt_md | additional_params  # type: ignore
 
         elif self.sim_type in sim_types and self.sim_type == "npt":
             additional_params: Dict[str, Any] = {
@@ -274,7 +272,7 @@ class MDP:
                 "refcoord_scaling": self.refcoord_scaling,
             }
 
-            return default_params_for_nvt_npt_md | additional_params
+            return default_params_for_nvt_npt_md | additional_params  # type: ignore
 
         elif self.sim_type in sim_types and self.sim_type == "md":
             additional_params: Dict[str, Any] = {
@@ -286,6 +284,6 @@ class MDP:
                 # "freezedim": self.freezedim,
             }
 
-            return default_params_for_nvt_npt_md | additional_params
+            return default_params_for_nvt_npt_md | additional_params  # type: ignore
 
         return {}
